@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    container_name: articles_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    env_file:
+      - .env
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - mynetwork
+
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: artciles_bot
+    restart: always
+    depends_on:
+      - db
+      - redis
+      - celery
+    environment:
+      DATABASE_URL: postgres://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+      TELEGRAM_TOKEN: ${BOT_TOKEN}
+      CELERY_BROKER_URL: redis://redis:6378/0
+      CELERY_RESULT_BACKEND: redis://redis:6378/0
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: python main.py
+    networks:
+      - mynetwork
+
+  redis:
+    image: redis:7
+    container_name: redis
+    restart: always
+    ports:
+      - "6378:6378"
+    volumes:
+      - redis_data:/data
+    networks:
+      - mynetwork
+
+  celery:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: celery_worker
+    restart: always
+    depends_on:
+      - redis
+      - db
+    environment:
+      DATABASE_URL: postgres://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+      TELEGRAM_TOKEN: ${BOT_TOKEN}
+      CELERY_BROKER_URL: redis://redis:6378/0
+      CELERY_RESULT_BACKEND: redis://redis:6378/0
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: celery -A utils.tasks worker --loglevel=info
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
