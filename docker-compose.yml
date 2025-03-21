@@ -44,13 +44,14 @@ services:
       - mynetwork
 
   redis:
-    image: redis:7
+    image: redis:alpine
     container_name: redis_articles
     restart: always
     ports:
       - "6378:6378"
     volumes:
       - redis_data:/data
+    command: redis-server --port 6378
     networks:
       - mynetwork
 
