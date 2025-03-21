@@ -24,8 +24,8 @@ async def async_delete(url):
 def cleanup_session(user_id: str):
     """Задача для очистки сессии: удаляет директорию и контейнер."""
 
-    delete_directory_url = f"http://31.130.150.69:8000/delete-directory/{user_id}"
-    delete_container_url = f"http://31.130.150.69:8000/delete/{user_id}"
+    delete_directory_url = f"http://opensci.ru/delete-directory/{user_id}"
+    delete_container_url = f"http://opensci.ru/delete/{user_id}"
 
     loop = asyncio.get_event_loop()
     loop.run_until_complete(async_delete(delete_directory_url))

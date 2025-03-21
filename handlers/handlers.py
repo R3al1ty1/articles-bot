@@ -197,7 +197,7 @@ async def process_session_confirmation(callback: CallbackQuery, callback_data: d
     try:
         async with aiohttp.ClientSession() as session:
             async with session.get(
-                f"http://31.130.150.69:8000/create/{user_id}",
+                f"http://opensci.ru/create/{user_id}",
                 timeout=aiohttp.ClientTimeout(total=30)
             ) as response:
                 response.raise_for_status()
