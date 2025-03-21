@@ -58,7 +58,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: celery_worker
+    container_name: celery_articles
     restart: always
     depends_on:
       - redis
