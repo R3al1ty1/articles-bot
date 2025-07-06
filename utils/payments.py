@@ -21,7 +21,7 @@ def buy_session(amount, chat_id):
         },
         "confirmation": {
             "type": "redirect",
-            "return_url": "https://t.me/ScopusRuBot"
+            "return_url": "https://t.me/OpenSciBot"
         },
         "capture": True,
         "metadata": {

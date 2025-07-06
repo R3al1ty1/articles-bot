@@ -8,7 +8,7 @@ from aiogram.types import FSInputFile, InputMediaDocument
 async def get_files(user_id: str):
     async with aiohttp.ClientSession() as session:
         async with session.get(
-            f"http://opensci.ru/download-files/{user_id}",
+            f"https://opensci.ru/download-files/{user_id}",
             timeout=aiohttp.ClientTimeout(total=60)
         ) as response:
             response.raise_for_status()
