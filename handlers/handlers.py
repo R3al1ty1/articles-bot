@@ -1,7 +1,5 @@
 import asyncio
 import aiohttp
-import tempfile
-import zipfile
 import os
 import shutil
 
@@ -13,6 +11,7 @@ from aiogram.fsm.state import default_state
 from aiogram_dialog import DialogManager
 from aiogram.types import FSInputFile, InputMediaDocument
 from aiogram.exceptions import AiogramError
+from loguru import logger
 
 from utils.formatter import format_sessions_message
 from utils.payments import buy_session, check_payment_status, get_minutes_amount
@@ -228,13 +227,13 @@ async def process_session_confirmation(callback: CallbackQuery, callback_data: d
 
     except aiohttp.ClientError as e:
         await callback.message.edit_text("⚠️ Ошибка соединения с сервером сессий. Попробуйте позже.")
-        print(f"AioHTTP client error: {str(e)}")
+        logger.info(f"Client error: {str(e)}")
     except AiogramError as e:
         await callback.message.edit_text("⚠️ Ошибка при обработке сообщения. Попробуйте снова.")
-        print(f"Telegram error: {str(e)}")
+        logger.info(f"Telegram error: {str(e)}")
     except Exception as e:
         await callback.message.edit_text(f"⚠️ Непредвиденная ошибка. Сообщите в поддержку.{str(e)}")
-        print(f"Unexpected error: {str(e)}")
+        logger.error(f"Unexpected error: {str(e)}")
     finally:
         await state.clear()
         await callback.answer()
