@@ -1,4 +1,5 @@
 import asyncio
+from pathlib import Path
 import aiohttp
 import os
 import shutil
@@ -45,7 +46,10 @@ async def process_start_command(message: Message):
     username = str(message.chat.username)
     tg_id = message.from_user.id
     add_new_user(username, tg_id)
-    await message.answer(
+    image_path = Path(__file__).parent / "opensci.jpg"
+    photo = FSInputFile(image_path)
+    await message.answer_photo(
+        photo=photo,
         text="Привет! 👋 Этот бот поможет вам легко и быстро получить доступ к функционалу Скопус.\n\nВоспользуйтесь кнопкой ниже или введите /access.\n\n🎉 Поздравляем! Вам начислено 2 пробных сессии по 15 минут!",
         reply_markup=keyboard
     )
