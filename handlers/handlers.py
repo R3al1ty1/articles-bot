@@ -35,8 +35,8 @@ button_30 = InlineKeyboardButton(text='30 минут', callback_data='button_30'
 button_hour = InlineKeyboardButton(text='1 час', callback_data='button_hour')
 
 keyboard_payments = InlineKeyboardMarkup(inline_keyboard=[
-    [button_10, button_15, button_30],
-    [button_hour]
+    [button_15],
+    # [button_hour]
 ])
 
 
