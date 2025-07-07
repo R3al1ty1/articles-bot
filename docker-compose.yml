@@ -23,7 +23,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: artciles_bot
+    container_name: articles_bot
     restart: always
     depends_on:
       - db
