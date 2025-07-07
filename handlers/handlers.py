@@ -46,7 +46,7 @@ async def process_start_command(message: Message):
     username = str(message.chat.username)
     tg_id = message.from_user.id
     add_new_user(username, tg_id)
-    image_path = Path(__file__).parent / "opensci.jpg"
+    image_path = Path(__file__).parent.parent / "opensci.jpg"
     photo = FSInputFile(image_path)
     await message.answer_photo(
         photo=photo,
