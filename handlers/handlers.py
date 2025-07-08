@@ -71,7 +71,7 @@ async def process_help_command(message: Message):
 async def process_payments_command(message: Message):
     """Обработчик команды /payments."""
     await message.answer(
-        text="""💰 Выберите, пожалуйста, количество запросов для покупки:
+        text="""💰 Выберите, пожалуйста, длительность сессии для покупки:
 
 Доступ на 10 минут -  179 руб
 Доступ на 15 минут -  249 руб
@@ -226,7 +226,7 @@ async def process_session_confirmation(callback: CallbackQuery, callback_data: d
                                f"🔗 Ссылка для доступа: {result['access_url']}")
                 else:
                     message = "🤔 Произошла неизвестная ошибка при создании сессии. Пожалуйста, попробуйте снова."
-
+                await asyncio.sleep(2)
                 await callback.message.edit_text(
                     text=message,
                     reply_markup=keyboard
