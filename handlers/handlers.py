@@ -203,7 +203,8 @@ async def process_session_confirmation(callback: CallbackQuery, callback_data: d
                 f"https://opensci.ru/create/{user_id}",
                 timeout=aiohttp.ClientTimeout(total=30)
             ) as response:
-                response.raise_for_status()
+                response.raise_for_status() 
+                
                 result = await response.json()
 
                 keyboard = InlineKeyboardMarkup(inline_keyboard=[
@@ -213,31 +214,48 @@ async def process_session_confirmation(callback: CallbackQuery, callback_data: d
                     )]
                 ])
 
-                if result['status'] == 'created':
+                if result.get('status') == 'created':
                     deduct_session(tg_id=user_id, length=session_length)
                     cleanup_session.apply_async(args=[str(user_id)], countdown=session_length * 60)
                     asyncio.create_task(schedule_send_files(session_length, str(user_id), callback))
 
-                    message = (f"Сессия длительностью {session_name} успешно начата!\n"
-                             f"🔗 Ссылка для доступа: {result['access_url']}")
+                    message = (f"✅ Сессия длительностью {session_name} успешно начата!\n\n"
+                               f"🔗 Ссылка для доступа: {result['access_url']}")
+                elif result.get('status') == 'exists':
+                    message = (f"❗️ Обнаружена активная сессия!\n\n"
+                               f"🔗 Ссылка для доступа: {result['access_url']}")
                 else:
-                    message = (f"Обнаружена активная сессия!\n"
-                             f"🔗 Ссылка для доступа: {result['access_url']}")
+                    message = "🤔 Произошла неизвестная ошибка при создании сессии. Пожалуйста, попробуйте снова."
 
                 await callback.message.edit_text(
                     text=message,
                     reply_markup=keyboard
                 )
 
+    except aiohttp.ClientResponseError as e:
+        if e.status == 429:
+            try:
+                error_details = await e.json()
+                error_message = error_details.get('detail', "Сервис перегружен. Попробуйте через 15 минут.")
+            except Exception:
+                error_message = "Сервис временно перегружен. Пожалуйста, попробуйте через 15 минут."
+            
+            await callback.message.edit_text(f"⚠️ {error_message}")
+        else:
+            await callback.message.edit_text(f"⚠️ Ошибка сервера сессий. Попробуйте позже.")
+        logger.warning(f"HTTP Response Error for user {user_id}: {e.status} - {e.message}")
+
     except aiohttp.ClientError as e:
-        await callback.message.edit_text("⚠️ Ошибка соединения с сервером сессий. Попробуйте позже.")
-        logger.info(f"Client error: {str(e)}")
+        await callback.message.edit_text("⚠️ Ошибка соединения с сервером сессий. Пожалуйста, попробуйте позже.")
+        logger.error(f"Client connection error for user {user_id}: {str(e)}")
+
     except AiogramError as e:
         await callback.message.edit_text("⚠️ Ошибка при обработке сообщения. Попробуйте снова.")
-        logger.info(f"Telegram error: {str(e)}")
+        logger.error(f"Telegram API error for user {user_id}: {str(e)}")
     except Exception as e:
-        await callback.message.edit_text(f"⚠️ Непредвиденная ошибка. Сообщите в поддержку.{str(e)}")
-        logger.error(f"Unexpected error: {str(e)}")
+        await callback.message.edit_text(f"⚠️ Непредвиденная ошибка. Сообщите в поддержку.")
+        logger.critical(f"Unexpected error in session confirmation for user {user_id}: {str(e)}", exc_info=True)
+
     finally:
         await state.clear()
         await callback.answer()
