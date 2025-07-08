@@ -121,7 +121,7 @@ async def process_balance_command(message: Message):
 
 
 @router.callback_query(F.data == "articles_button_pressed", StateFilter(default_state))
-async def process_articles_button(callback: CallbackQuery, state: FSMContext, dialog_manager: DialogManager):
+async def process_articles_button(callback: CallbackQuery, state: FSMContext):
     username = str(callback.message.chat.username)
     tg_id = callback.from_user.id
     add_new_user(username, tg_id)
@@ -139,7 +139,8 @@ async def process_articles_button(callback: CallbackQuery, state: FSMContext, di
     else:
         await callback.message.answer("К сожалению, на вашем балансе закончились сессии.\nПриобретите их сейчас👇🏼")
         await process_payments_command(callback.message)
-        return
+    
+    await callback.answer()
 
 
 @router.message(Command(commands='access'))
