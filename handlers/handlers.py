@@ -50,7 +50,7 @@ async def process_start_command(message: Message):
     photo = FSInputFile(image_path)
     await message.answer_photo(
         photo=photo,
-        caption="Привет! 👋 Этот бот поможет вам легко и быстро получить доступ к функционалу Скопус.\n\nВоспользуйтесь кнопкой ниже или введите /access.\n\n📝 Продолжая, вы подтверждаете, что ознакомились с инструкцией: https://telegra.ph/Kak-ispolzovat-OpenSciBot-07-08\n\n🎉 Поздравляем! Вам начислено 2 пробные сессии по 15 минут!",
+        caption="Привет! 👋 Этот бот поможет вам легко и быстро получить доступ к функционалу Скопус.\n\nВоспользуйтесь кнопкой ниже или введите /access.\n\n📝 Продолжая, вы подтверждаете, что ознакомились с инструкцией: https://telegra.ph/Kak-ispolzovat-OpenSciBot-07-09\n\n🎉 Поздравляем! Вам начислено 2 пробные сессии по 15 минут!",
         reply_markup=keyboard
     )
 
@@ -107,7 +107,7 @@ async def check_payment(callback: CallbackQuery):
 @router.message(Command(commands='support'))
 async def process_support_command(message: Message):
     """Обработчик команды /support."""
-    await message.answer(text="💬 Поддержка: @chadbugsy\n📝 Инструкция: https://telegra.ph/Kak-ispolzovat-OpenSciBot-07-08")
+    await message.answer(text="💬 Поддержка: @chadbugsy\n📝 Инструкция: https://telegra.ph/Kak-ispolzovat-OpenSciBot-07-09")
 
 
 @router.message(Command(commands='balance'))
