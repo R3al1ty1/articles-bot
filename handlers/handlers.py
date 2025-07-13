@@ -50,7 +50,7 @@ async def process_start_command(message: Message):
     photo = FSInputFile(image_path)
     await message.answer_photo(
         photo=photo,
-        caption="Привет! 👋 Этот бот поможет вам легко и быстро получить доступ к функционалу Скопус.\n\nВоспользуйтесь кнопкой ниже или введите /access.\n\n📝 Продолжая, вы подтверждаете, что ознакомились с инструкцией: https://telegra.ph/Kak-ispolzovat-OpenSciBot-07-09\n\n🎉 Поздравляем! Вам начислено 2 пробные сессии по 15 минут!",
+        caption="Привет! 👋 Этот бот поможет вам легко и быстро получить доступ к функционалу Scopus и Web of Science.\n\nВоспользуйтесь кнопкой ниже или введите /access.\n\n📝 Продолжая, вы подтверждаете, что ознакомились с инструкцией: https://telegra.ph/Kak-ispolzovat-OpenSciBot-07-09\n\n🎉 Поздравляем! Вам начислено 2 пробные сессии по 15 минут!",
         reply_markup=keyboard
     )
 
@@ -130,11 +130,8 @@ async def process_articles_button(callback: CallbackQuery, state: FSMContext):
     
     if user_sessions:
         await state.update_data(user_sessions=user_sessions)
-
         keyboard = dialogs.create_session_keyboard(user_sessions)
-
         await callback.message.answer("Выберите длительность сессии:", reply_markup=keyboard)
-
         await state.set_state(dialogs.SessionStates.selecting_session)
     else:
         await callback.message.answer("К сожалению, на вашем балансе закончились сессии.\nПриобретите их сейчас👇🏼")
@@ -153,11 +150,8 @@ async def process_access_command(message: Message, state: FSMContext):
     
     if user_sessions:
         await state.update_data(user_sessions=user_sessions)
-
         keyboard = dialogs.create_session_keyboard(user_sessions)
-
         await message.answer("Выберите длительность сессии:", reply_markup=keyboard)
-
         await state.set_state(dialogs.SessionStates.selecting_session)
     else:
         await message.answer("К сожалению, на вашем балансе закончились сессии.\nПриобретите их сейчас👇🏼")
@@ -165,41 +159,61 @@ async def process_access_command(message: Message, state: FSMContext):
         return
 
 
-@router.callback_query(dialogs.SessionCallbackFactory.filter(F.action == "select"), dialogs.SessionStates.selecting_session)
-async def process_session_selection(callback: CallbackQuery, callback_data: dialogs.SessionCallbackFactory, state: FSMContext):
+@router.callback_query(dialogs.SessionCallbackFactory.filter(F.action == "select_length"), dialogs.SessionStates.selecting_session)
+async def process_session_length_selection(callback: CallbackQuery, callback_data: dialogs.SessionCallbackFactory, state: FSMContext):
     session_length = callback_data.length
-
     await state.update_data(selected_length=session_length)
 
-    keyboard = dialogs.create_confirmation_keyboard(session_length)
+    keyboard = dialogs.create_website_keyboard()
+    await callback.message.edit_text("Отлично! Теперь выберите сайт для доступа:", reply_markup=keyboard)
+    await state.set_state(dialogs.SessionStates.selecting_website)
+    await callback.answer()
+
+
+@router.callback_query(dialogs.SessionCallbackFactory.filter(F.action == "select_website"), dialogs.SessionStates.selecting_website)
+async def process_website_selection(callback: CallbackQuery, callback_data: dialogs.SessionCallbackFactory, state: FSMContext):
+    website = callback_data.website
+    await state.update_data(selected_website=website)
+
+    data = await state.get_data()
+    session_length = data.get("selected_length")
+
+    keyboard = dialogs.create_confirmation_keyboard(session_length, website)
 
     session_names = {10: '10 минут', 15: '15 минут', 30: '30 минут', 60: '1 час'}
     session_name = session_names.get(session_length, f"{session_length} минут")
+    website_name = "Scopus" if website == "scopus" else "Web of Science"
 
     await callback.message.edit_text(
-        f"Вы выбрали сессию длительностью {session_name}. Вы уверены?", 
+        f"Вы выбрали: {session_name} для сайта {website_name}.\n\nВы уверены?", 
         reply_markup=keyboard
     )
-
     await state.set_state(dialogs.SessionStates.confirming_session)
-
     await callback.answer()
 
 
 @router.callback_query(dialogs.SessionCallbackFactory.filter(F.action == "confirm"), dialogs.SessionStates.confirming_session)
 async def process_session_confirmation(callback: CallbackQuery, callback_data: dialogs.SessionCallbackFactory, state: FSMContext):
-    data = await state.get_data()
-    session_length = data.get("selected_length")
+    session_length = callback_data.length
+    website = callback_data.website
     user_id = callback.from_user.id
 
     session_names = {10: '10 минут', 15: '15 минут', 30: '30 минут', 60: '1 час'}
     session_name = session_names.get(session_length, f"{session_length} минут")
 
+    payload = {
+        "user_id": str(user_id),
+        "website": website
+    }
+    
+    await callback.message.edit_text("⏳ Запускаем сессию, это может занять до 30 секунд...")
+    
     try:
         async with aiohttp.ClientSession() as session:
             async with session.post(
-                f"https://opensci.ru/create/{user_id}",
-                timeout=aiohttp.ClientTimeout(total=30)
+                "https://opensci.ru/create",
+                json=payload,
+                timeout=aiohttp.ClientTimeout(total=40)
             ) as response:
                 response.raise_for_status() 
                 
@@ -208,7 +222,7 @@ async def process_session_confirmation(callback: CallbackQuery, callback_data: d
                 keyboard = InlineKeyboardMarkup(inline_keyboard=[
                     [InlineKeyboardButton(
                         text="📥 Получить файлы", 
-                        callback_data=dialogs.SessionCallbackFactory(action="download", length=0).pack()
+                        callback_data=dialogs.SessionCallbackFactory(action="download").pack()
                     )]
                 ])
 
@@ -224,7 +238,7 @@ async def process_session_confirmation(callback: CallbackQuery, callback_data: d
                                f"🔗 Ссылка для доступа: {result['access_url']}")
                 else:
                     message = "🤔 Произошла неизвестная ошибка при создании сессии. Пожалуйста, попробуйте снова."
-                await asyncio.sleep(2)
+                
                 await callback.message.edit_text(
                     text=message,
                     reply_markup=keyboard
@@ -232,24 +246,16 @@ async def process_session_confirmation(callback: CallbackQuery, callback_data: d
 
     except aiohttp.ClientResponseError as e:
         if e.status == 429:
-            try:
-                error_details = await e.json()
-                error_message = error_details.get('detail', "Сервис перегружен. Попробуйте через 15 минут.")
-            except Exception:
-                error_message = "Сервис временно перегружен. Пожалуйста, попробуйте через 15 минут."
-            
+            error_message = "Сервис временно перегружен. Пожалуйста, попробуйте через 15 минут."
             await callback.message.edit_text(f"⚠️ {error_message}")
         else:
-            await callback.message.edit_text(f"⚠️ Ошибка сервера сессий. Попробуйте позже.")
+            await callback.message.edit_text(f"⚠️ Ошибка сервера сессий ({e.status}). Попробуйте позже.")
         logger.warning(f"HTTP Response Error for user {user_id}: {e.status} - {e.message}")
 
-    except aiohttp.ClientError as e:
+    except (aiohttp.ClientError, asyncio.TimeoutError) as e:
         await callback.message.edit_text("⚠️ Ошибка соединения с сервером сессий. Пожалуйста, попробуйте позже.")
         logger.error(f"Client connection error for user {user_id}: {str(e)}")
 
-    except AiogramError as e:
-        await callback.message.edit_text("⚠️ Ошибка при обработке сообщения. Попробуйте снова.")
-        logger.error(f"Telegram API error for user {user_id}: {str(e)}")
     except Exception as e:
         await callback.message.edit_text(f"⚠️ Непредвиденная ошибка. Сообщите в поддержку.")
         logger.critical(f"Unexpected error in session confirmation for user {user_id}: {str(e)}", exc_info=True)
@@ -279,22 +285,9 @@ async def process_files_download(callback: CallbackQuery, callback_data: dialogs
         await callback.answer()
 
 
-@router.callback_query(dialogs.SessionCallbackFactory.filter(F.action == "back"), dialogs.SessionStates.confirming_session)
-async def process_session_back(callback: CallbackQuery, callback_data: dialogs.SessionCallbackFactory, state: FSMContext):
-    data = await state.get_data()
-    user_sessions = data.get("user_sessions")
-
-    if not user_sessions:
-        tg_id = callback.from_user.id
-        user_sessions = get_user_sessions(tg_id)
-    
-    if user_sessions:
-        keyboard = dialogs.create_session_keyboard(user_sessions)
-        await callback.message.edit_text("Выберите длительность сессии:", reply_markup=keyboard)
-        await state.update_data(user_sessions=user_sessions)
-        await state.set_state(dialogs.SessionStates.selecting_session)
-    else:
-        await callback.message.edit_text("К сожалению, на вашем балансе закончились сессии.")
-        await process_payments_command(callback.message)
-
+@router.callback_query(dialogs.SessionCallbackFactory.filter(F.action == "back_to_website_selection"), dialogs.SessionStates.confirming_session)
+async def process_session_back_to_website(callback: CallbackQuery, callback_data: dialogs.SessionCallbackFactory, state: FSMContext):
+    keyboard = dialogs.create_website_keyboard()
+    await callback.message.edit_text("Выберите сайт для доступа:", reply_markup=keyboard)
+    await state.set_state(dialogs.SessionStates.selecting_website)
     await callback.answer()

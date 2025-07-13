@@ -7,11 +7,13 @@ from typing import Optional
 
 class SessionStates(StatesGroup):
     selecting_session = State()
+    selecting_website = State()
     confirming_session = State()
 
 class SessionCallbackFactory(CallbackData, prefix="session"):
     action: str
     length: Optional[int] = None
+    website: Optional[str] = None
 
 
 def create_session_keyboard(user_sessions):
@@ -31,7 +33,7 @@ def create_session_keyboard(user_sessions):
         if session_length in session_names:
             button = InlineKeyboardButton(
                 text=f'{session_names[session_length]} ({session_count})', 
-                callback_data=SessionCallbackFactory(action="select", length=session_length).pack()
+                callback_data=SessionCallbackFactory(action="select_length", length=session_length).pack()
             )
             available_buttons.append(button)
 
@@ -47,15 +49,27 @@ def create_session_keyboard(user_sessions):
     return InlineKeyboardMarkup(inline_keyboard=keyboard_rows)
 
 
-def create_confirmation_keyboard(session_length):
+def create_website_keyboard():
+    scopus_button = InlineKeyboardButton(
+        text="Scopus",
+        callback_data=SessionCallbackFactory(action="select_website", website="scopus").pack()
+    )
+    wos_button = InlineKeyboardButton(
+        text="Web of Science",
+        callback_data=SessionCallbackFactory(action="select_website", website="wos").pack()
+    )
+    
+    return InlineKeyboardMarkup(inline_keyboard=[[scopus_button, wos_button]])
+
+
+def create_confirmation_keyboard(session_length, website):
     confirm_button = InlineKeyboardButton(
         text="Да, уверен", 
-        callback_data=SessionCallbackFactory(action="confirm", length=session_length).pack()
+        callback_data=SessionCallbackFactory(action="confirm", length=session_length, website=website).pack()
     )
     back_button = InlineKeyboardButton(
         text="Вернуться к выбору", 
-        callback_data=SessionCallbackFactory(action="back", length=0).pack()
+        callback_data=SessionCallbackFactory(action="back_to_website_selection").pack()
     )
-
     
     return InlineKeyboardMarkup(inline_keyboard=[[confirm_button], [back_button]])
