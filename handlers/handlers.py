@@ -35,8 +35,8 @@ button_30 = InlineKeyboardButton(text='30 минут', callback_data='button_30'
 button_hour = InlineKeyboardButton(text='1 час', callback_data='button_hour')
 
 keyboard_payments = InlineKeyboardMarkup(inline_keyboard=[
-    [button_15],
-    # [button_hour]
+    [button_10, button_15, button_30],
+    [button_hour]
 ])
 
 
@@ -73,7 +73,10 @@ async def process_payments_command(message: Message):
     await message.answer(
         text="""💰 Выберите, пожалуйста, длительность сессии для покупки:
 
-Доступ на 15 минут -  219 руб
+        Доступ на 10 минут -  159 руб
+        Доступ на 15 минут -  219 руб
+        Доступ на 30 минут -  329 руб
+        Доступ на 1 час -  449 руб
 """,
         reply_markup=keyboard_payments
     )
