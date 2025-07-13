@@ -59,7 +59,7 @@ def create_website_keyboard():
     #     callback_data=SessionCallbackFactory(action="select_website", website="wos").pack()
     # )
     
-    return InlineKeyboardMarkup(inline_keyboard=[[scopus_button, wos_button]])
+    return InlineKeyboardMarkup(inline_keyboard=[[scopus_button]])
 
 
 def create_confirmation_keyboard(session_length, website):
