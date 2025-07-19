@@ -183,7 +183,14 @@ async def process_website_selection(callback: CallbackQuery, callback_data: dial
 
     session_names = {10: '10 минут', 15: '15 минут', 30: '30 минут', 60: '1 час'}
     session_name = session_names.get(session_length, f"{session_length} минут")
-    website_name = "Scopus" if website == "scopus" else "Web of Science"
+
+    match website:
+        case "scopus":
+            website_name = "Scopus"
+        case "wos":
+            website_name = "Web of Science"
+        case "embase":
+            website_name = "Embase"
 
     await callback.message.edit_text(
         f"Вы выбрали: {session_name} для сайта {website_name}.\n\nВы уверены?", 
