@@ -58,8 +58,12 @@ def create_website_keyboard():
         text="Web of Science",
         callback_data=SessionCallbackFactory(action="select_website", website="wos").pack()
     )
-    
-    return InlineKeyboardMarkup(inline_keyboard=[[scopus_button, wos_button]])
+    embase_button = InlineKeyboardButton(
+        text="Embase",
+        callback_data=SessionCallbackFactory(action="select_website", website="embase").pack()
+    )
+
+    return InlineKeyboardMarkup(inline_keyboard=[[scopus_button, embase_button], [wos_button]])
 
 
 def create_confirmation_keyboard(session_length, website):

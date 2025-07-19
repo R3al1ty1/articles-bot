@@ -9,9 +9,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram import Router, F
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.state import default_state
-from aiogram_dialog import DialogManager
-from aiogram.types import FSInputFile, InputMediaDocument
-from aiogram.exceptions import AiogramError
+from aiogram.types import FSInputFile
 from loguru import logger
 
 from utils.formatter import format_sessions_message
@@ -19,7 +17,7 @@ from utils.payments import buy_session, check_payment_status, get_minutes_amount
 from utils.consts import AMOUNTS_DCT
 from database.requests import add_session_to_user, deduct_session, get_user_sessions, add_new_user
 from dialogs import dialogs
-from utils.tasks import cleanup_session, process_files, schedule_send_files
+from utils.tasks import cleanup_session, schedule_send_files
 from utils.utils import get_files, send_files_message
 
 
@@ -210,6 +208,7 @@ async def process_session_confirmation(callback: CallbackQuery, callback_data: d
     }
     
     await callback.message.edit_text("⏳ Запускаем сессию, это может занять до 30 секунд...")
+    await asyncio.sleep(3)
     
     try:
         async with aiohttp.ClientSession() as session:
