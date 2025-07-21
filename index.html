@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenSciBot | Мгновенный доступ к Scopus, Embase и Web of Science</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* --- Глобальные стили и переменные --- */
+        :root {
+            --primary-color: #007AFF;
+            --primary-hover-color: #0056b3;
+            --dark-color: #1c1c1e;
+            --text-color: #333;
+            --light-gray-color: #f2f2f7;
+            --border-color: #e5e5ea;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            background-color: var(--light-gray-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        section {
+            padding: 80px 0;
+        }
+
+        h1, h2, h3 {
+            color: var(--dark-color);
+            font-weight: 700;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        p {
+            font-size: 1.1rem;
+            color: #555;
+        }
+
+        /* --- Навигация --- */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            background: var(--light-gray-color);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--dark-color);
+            text-decoration: none;
+        }
+
+        .nav-links a {
+            color: var(--text-color);
+            text-decoration: none;
+            margin-left: 25px;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+        
+        .nav-links a:hover {
+            color: var(--primary-color);
+        }
+
+        /* --- Основной экран (Hero) --- */
+        .hero {
+            text-align: center;
+            padding-top: 100px;
+            padding-bottom: 120px;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            max-width: 650px;
+            margin: 0 auto 30px;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: var(--primary-color);
+            color: #fff;
+            padding: 18px 35px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-decoration: none;
+            border-radius: 12px;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+        }
+
+        .cta-button:hover {
+            background-color: var(--primary-hover-color);
+            transform: translateY(-2px);
+        }
+
+        /* --- Как это работает --- */
+        #how-it-works {
+            background: #fff;
+        }
+
+        .steps-container {
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+            gap: 40px;
+        }
+
+        .step {
+            max-width: 300px;
+        }
+
+        .step-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            background: var(--light-gray-color);
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            font-weight: 700;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+        }
+
+        .step h3 {
+            margin-bottom: 10px;
+        }
+
+        /* --- Тарифы --- */
+        .pricing-container {
+            display: flex;
+            justify-content: center;
+            align-items: stretch;
+            gap: 30px;
+        }
+
+        .price-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 40px;
+            flex: 1;
+            max-width: 340px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .price-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.07);
+        }
+
+        .price-card.popular {
+            border-color: var(--primary-color);
+            border-width: 2px;
+            position: relative;
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary-color);
+            color: #fff;
+            padding: 5px 15px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            border-radius: 20px;
+        }
+
+        .price-card h3 {
+            font-size: 1.5rem;
+        }
+
+        .price {
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: var(--dark-color);
+            margin: 10px 0;
+        }
+        
+        .price span {
+            font-size: 1rem;
+            font-weight: 400;
+            color: #666;
+        }
+
+        .features {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+            text-align: left;
+            flex-grow: 1;
+        }
+
+        .features li {
+            margin-bottom: 15px;
+            position: relative;
+            padding-left: 25px;
+        }
+        
+        .features li::before {
+            content: '✔';
+            color: var(--primary-color);
+            position: absolute;
+            left: 0;
+            font-weight: 700;
+        }
+
+        /* --- FAQ --- */
+        #faq {
+            background: #fff;
+        }
+        .faq-container {
+            max-width: 750px;
+            margin: 0 auto;
+        }
+
+        .faq-item {
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .faq-item:first-child {
+            border-top: 1px solid var(--border-color);
+        }
+
+        .faq-question {
+            padding: 20px 0;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+
+        .faq-question::after {
+            content: '+';
+            font-size: 1.8rem;
+            font-weight: 300;
+            transition: transform 0.2s ease;
+            color: var(--primary-color);
+        }
+
+        .faq-item.active .faq-question::after {
+            transform: rotate(45deg);
+        }
+
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            color: #555;
+        }
+        .faq-answer p {
+            padding-bottom: 20px;
+            margin: 0;
+            font-size: 1rem;
+        }
+
+        /* --- Footer --- */
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        /* --- Адаптивность --- */
+        @media (max-width: 900px) {
+            .steps-container, .pricing-container {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2.5rem; }
+            h2 { font-size: 2rem; }
+            .navbar { flex-direction: column; gap: 15px; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <header class="navbar container">
+        <a href="#" class="logo">OpenSciBot</a>
+        <nav class="nav-links">
+            <a href="#how-it-works">Как это работает</a>
+            <a href="#pricing">Тарифы</a>
+            <a href="#faq">FAQ</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="hero" class="hero container">
+            <h1>Scopus, Embase и Web of Science. Прямо в вашем Telegram.</h1>
+            <p>Мгновенный доступ к главным научным базам мира. Без VPN, сложных паролей и лимитов на скачивание.</p>
+            <!-- !!! ЗАМЕНИТЕ ЭТО НА ВАШУ РЕАЛЬНУЮ ССЫЛКУ НА ТЕЛЕГРАМ-БОТА !!! -->
+            <a href="https://t.me/YourBotName" target="_blank" class="cta-button">Попробовать бесплатно</a>
+        </section>
+
+        <section id="how-it-works">
+            <div class="container">
+                <h2>Ваш научный ассистент в 3 шага</h2>
+                <div class="steps-container">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <h3>Запустите бота</h3>
+                        <p>Нажмите "Начать" в Telegram. Никакой сложной регистрации, ваш аккаунт уже готов к работе.</p>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <h3>Отправьте запрос</h3>
+                        <p>Пришлите боту DOI, ссылку на статью или просто ее название. Бот поймет, что вы ищете.</p>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <h3>Получите результат</h3>
+                        <p>Через несколько секунд бот найдет нужный ресурс и пришлет вам PDF-файл или ссылку для скачивания.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="pricing">
+            <div class="container">
+                <h2>Выберите свой план доступа</h2>
+                <div class="pricing-container">
+                    <div class="price-card">
+                        <h3>Пробный</h3>
+                        <div class="price">0 ₽</div>
+                        <p>Оцените все возможности</p>
+                        <ul class="features">
+                            <li>5 бесплатных запросов</li>
+                            <li>Доступ ко всем базам</li>
+                            <li>Мгновенные ответы</li>
+                        </ul>
+                        <!-- !!! ЗАМЕНИТЕ ССЫЛКУ !!! -->
+                        <a href="https://t.me/YourBotName" target="_blank" class="cta-button">Начать бесплатно</a>
+                    </div>
+                    <div class="price-card popular">
+                        <div class="popular-badge">Хит продаж</div>
+                        <h3>Персональный</h3>
+                        <div class="price">990 ₽<span>/месяц</span></div>
+                        <p>Для активных исследователей</p>
+                        <ul class="features">
+                            <li><strong>Безлимитные</strong> запросы</li>
+                            <li>Доступ ко всем базам</li>
+                            <li>История запросов</li>
+                            <li>Приоритетная поддержка</li>
+                        </ul>
+                        <!-- !!! ЗАМЕНИТЕ ССЫЛКУ НА СТРАНИЦУ ОПЛАТЫ ИЛИ БОТА !!! -->
+                        <a href="https://t.me/YourBotName" target="_blank" class="cta-button">Выбрать план</a>
+                    </div>
+                    <div class="price-card">
+                        <h3>Командный</h3>
+                        <div class="price">От 3990 ₽<span>/месяц</span></div>
+                        <p>Для научных групп и лабораторий</p>
+                        <ul class="features">
+                            <li>Все из "Персонального"</li>
+                            <li>До 5 участников</li>
+                            <li>Общая история</li>
+                            <li>Единый счет для оплаты</li>
+                        </ul>
+                         <!-- !!! ЗАМЕНИТЕ ССЫЛКУ НА СТРАНИЦУ КОНТАКТОВ ИЛИ БОТА !!! -->
+                        <a href="https://t.me/YourBotName" target="_blank" class="cta-button">Связаться с нами</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="faq">
+            <div class="container">
+                <h2>Остались вопросы?</h2>
+                <div class="faq-container">
+                    <div class="faq-item">
+                        <div class="faq-question">Это легально?</div>
+                        <div class="faq-answer">
+                            <p>Да, мы используем легальные доступы через партнерские учебные заведения и организации для агрегации ресурсов. Вы получаете доступ к материалам, которые и так находятся в открытом или подписном доступе у наших партнеров.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question">Как быстро я получу статью?</div>
+                        <div class="faq-answer">
+                            <p>Обычно бот находит и отправляет статью в течение 5-15 секунд. Скорость может зависеть от сложности запроса и отклика исходной базы данных.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question">Что если бот не нашел нужную статью?</div>
+                        <div class="faq-answer">
+                            <p>Такое случается редко, но если произошло — запрос не будет засчитан в вашем лимите. Мы постоянно работаем над расширением нашей базы доступов, чтобы минимизировать такие случаи.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question">Можно ли отменить подписку?</div>
+                        <div class="faq-answer">
+                            <p>Да, вы можете отменить подписку в любой момент через настройки бота. Доступ к сервису сохранится до конца уже оплаченного периода.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="container">
+        <p>© 2024 OpenSciBot. Создано, чтобы сделать науку доступнее.</p>
+    </footer>
+
+    <script>
+        const faqItems = document.querySelectorAll('.faq-item');
+
+        faqItems.forEach(item => {
+            const question = item.querySelector('.faq-question');
+            const answer = item.querySelector('.faq-answer');
+
+            question.addEventListener('click', () => {
+                const isActive = item.classList.contains('active');
+                
+                // Сначала закрываем все активные ответы, чтобы работал аккордеон
+                faqItems.forEach(i => {
+                    if (i !== item) {
+                       i.classList.remove('active');
+                       i.querySelector('.faq-answer').style.maxHeight = null;
+                    }
+                });
+                
+                // Переключаем текущий элемент
+                item.classList.toggle('active');
+                if (item.classList.contains('active')) {
+                    answer.style.maxHeight = answer.scrollHeight + "px";
+                } else {
+                    answer.style.maxHeight = null;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
