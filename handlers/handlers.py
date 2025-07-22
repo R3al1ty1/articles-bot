@@ -217,7 +217,7 @@ async def process_session_confirmation(callback: CallbackQuery, callback_data: d
     }
     
     await callback.message.edit_text("⏳ Запускаем сессию, это может занять до 30 секунд...")
-    await asyncio.sleep(3)
+    await asyncio.sleep(5)
     
     try:
         async with aiohttp.ClientSession() as session:
@@ -244,7 +244,7 @@ async def process_session_confirmation(callback: CallbackQuery, callback_data: d
 
                     message = (f"✅ Сессия длительностью {session_name} успешно начата!\n\n"
                                f"🔗 Ссылка для доступа: {result['access_url']}\n\n"
-                               f"⚠️ Если получаете ошибку 502, просто перезагрузите страницу!")
+                               f"⚠️ Если получаете ошибку 502, просто немного подождите, после чего перезагрузите страницу!")
                 elif result.get('status') == 'exists':
                     message = (f"❗️ Обнаружена активная сессия!\n\n"
                                f"🔗 Ссылка для доступа: {result['access_url']}")
